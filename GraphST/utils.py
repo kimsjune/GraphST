@@ -65,6 +65,11 @@ def mclust_R(
             modelNames=modelNames
         )
 
+    print("Python shape:", adata.obsm[used_obsm].shape)
+    print("R class:", X.rclass)
+    print("R dim:", X.dim)
+    print("R length:", len(X))
+
     # Extract classification
     # Mclust output contains a "classification" element
     mclust_res = np.asarray(res.rx2("classification"))
