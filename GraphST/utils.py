@@ -44,7 +44,8 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
         nrow=adata.obsm[used_obsm].shape[0],
         ncol=adata.obsm[used_obsm].shape[1]
     )
-
+    print(type(X))
+    print(tuple(X.dim))
     res = rmclust(
         X,
         G=num_cluster,
