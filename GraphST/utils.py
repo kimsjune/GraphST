@@ -17,12 +17,20 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
     robjects.r.library("mclust")
 
     import rpy2.robjects.numpy2ri
-    rpy2.robjects.numpy2ri.activate()
+    from rpy2.robjects.conversion import localconverter
+    from rpy2.robjects import default_converter
+    
     r_random_seed = robjects.r['set.seed']
     r_random_seed(random_seed)
     rmclust = robjects.r['Mclust']
     
-    res = rmclust(rpy2.robjects.numpy2ri.numpy2rpy(adata.obsm[used_obsm]), num_cluster, modelNames)
+    with localconverter(default_converter + rpy2.robjects.numpy2ri.converter):
+        res = rmclust(
+            rpy2.robjects.numpy2ri.numpy2rpy(adata.obsm[used_obsm]),
+            num_cluster,
+            modelNames
+        )
+    
     mclust_res = np.array(res[-2])
 
     adata.obs['mclust'] = mclust_res
