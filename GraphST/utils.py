@@ -26,7 +26,7 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
     r_random_seed = robjects.r['set.seed']
     r_random_seed(random_seed)
     rmclust = robjects.r['Mclust']
-    
+
     X_py = adata.obsm[used_obsm]
 
     print("NA:", np.isnan(X_py).sum())
@@ -36,22 +36,21 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
 
     with localconverter(default_converter + numpy2ri.converter):
         X = numpy2ri.converter.py2rpy(
-            adata.obsm[used_obsm].astype(np.float64)
+            X_py.astype(np.float64)
         )
 
-    X_test = robjects.r.matrix(
-        robjects.r.rnorm(100 * 20),
-        nrow=100,
-        ncol=20
+    X = robjects.r.matrix(
+        X,
+        nrow=X_py.shape[0],
+        ncol=X_py.shape[1]
     )
 
-    print(type(X_test))
-    print(tuple(X_test.dim))
+    robjects.globalenv["X"] = X
+    robjects.globalenv["num_cluster"] = num_cluster
+    robjects.globalenv["modelNames"] = modelNames
 
-    res = rmclust(
-        X_test,
-        G=5,
-        modelNames="EEE"
+    res = robjects.r(
+        'Mclust(X, G=num_cluster, modelNames=modelNames)'
     )
 
     mclust_res = np.array(res[-2])
