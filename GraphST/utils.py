@@ -35,16 +35,20 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
     print("unique rows:", np.unique(X_py, axis=0).shape[0])
 
     with localconverter(default_converter + numpy2ri.converter):
-        test_X = numpy2ri.converter.py2rpy(
-            np.random.randn(100, 20)
+        X = numpy2ri.converter.py2rpy(
+            adata.obsm[used_obsm].astype(np.float64)
         )
 
-    print("dim:", tuple(test_X.dim))
+    X = robjects.r.matrix(
+        X,
+        nrow=adata.obsm[used_obsm].shape[0],
+        ncol=adata.obsm[used_obsm].shape[1]
+    )
 
     res = rmclust(
-        test_X,
-        G=5,
-        modelNames="EEE"
+        X,
+        G=num_cluster,
+        modelNames=modelNames
     )
 
     mclust_res = np.array(res[-2])
