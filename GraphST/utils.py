@@ -32,8 +32,11 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
     print("Python dtype:", adata.obsm[used_obsm].dtype)
 
     with localconverter(default_converter + numpy2ri.converter):
+        X = numpy2ri.converter.py2rpy(
+            adata.obsm[used_obsm].astype(np.float64)
+        )
         res = rmclust(
-            adata.obsm[used_obsm],
+            X,
             num_cluster,
             modelNames
         )
