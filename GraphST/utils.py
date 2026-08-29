@@ -55,6 +55,11 @@ def mclust_R(
     # Get embedding
     X = adata.obsm[used_obsm]
 
+    print("Python shape:", adata.obsm[used_obsm].shape)
+    print("R class:", X.rclass)
+    print("R dim:", X.dim)
+    print("R length:", len(X))
+
     # Convert NumPy array to R matrix locally
     converter = default_converter + numpy2ri.converter
 
@@ -65,10 +70,7 @@ def mclust_R(
             modelNames=modelNames
         )
 
-    print("Python shape:", adata.obsm[used_obsm].shape)
-    print("R class:", X.rclass)
-    print("R dim:", X.dim)
-    print("R length:", len(X))
+
 
     # Extract classification
     # Mclust output contains a "classification" element
