@@ -6,36 +6,73 @@ import ot
 from sklearn.decomposition import PCA
 
 
-def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_seed=2020):
-    """\
-    Clustering using the mclust algorithm.
-    The parameters are the same as those in the R package mclust.
+import numpy as np
+
+
+def mclust_R(
+    adata,
+    num_cluster,
+    modelNames="EEE",
+    used_obsm="emb_pca",
+    random_seed=2020
+):
     """
-    
-    np.random.seed(random_seed)
-    import rpy2.robjects as robjects
-    robjects.r.library("mclust")
+    Clustering using the R package mclust via rpy2.
 
-    import rpy2.robjects.numpy2ri
+    Parameters
+    ----------
+    adata
+        AnnData object.
+    num_cluster : int
+        Number of clusters (G parameter for Mclust).
+    modelNames : str, default="EEE"
+        Covariance model used by mclust.
+    used_obsm : str, default="emb_pca"
+        Key in adata.obsm containing the embedding to cluster.
+    random_seed : int, default=2020
+        Random seed.
+
+    Returns
+    -------
+    adata
+        AnnData object with cluster labels stored in adata.obs["mclust"].
+    """
+
+    import rpy2.robjects as ro
+    from rpy2.robjects import numpy2ri, default_converter
     from rpy2.robjects.conversion import localconverter
-    from rpy2.robjects import default_converter
-    
-    r_random_seed = robjects.r['set.seed']
-    r_random_seed(random_seed)
-    rmclust = robjects.r['Mclust']
-    
-    with localconverter(default_converter + rpy2.robjects.numpy2ri.converter):
-        res = rmclust(
-            rpy2.robjects.numpy2ri.numpy2rpy(adata.obsm[used_obsm]),
-            num_cluster,
-            modelNames
-        )
-    
-    mclust_res = np.array(res[-2])
+    from rpy2.robjects.packages import importr
 
-    adata.obs['mclust'] = mclust_res
-    adata.obs['mclust'] = adata.obs['mclust'].astype('int')
-    adata.obs['mclust'] = adata.obs['mclust'].astype('category')
+    # Set Python random seed
+    np.random.seed(random_seed)
+
+    # Load R package
+    mclust = importr("mclust")
+
+    # Set R random seed
+    ro.r["set.seed"](random_seed)
+
+    # Get embedding
+    X = adata.obsm[used_obsm]
+
+    # Convert NumPy array to R matrix locally
+    converter = default_converter + numpy2ri.converter
+
+    with localconverter(converter):
+        res = mclust.Mclust(
+            X,
+            G=num_cluster,
+            modelNames=modelNames
+        )
+
+    # Extract classification
+    # Mclust output contains a "classification" element
+    mclust_res = np.asarray(res.rx2("classification"))
+
+    # Store results
+    adata.obs["mclust"] = mclust_res.astype(int)
+    adata.obs["mclust"] = adata.obs["mclust"].astype("category")
+
     return adata
 
 def clustering(adata, n_clusters=7, radius=50, key='emb', method='mclust', start=0.1, end=3.0, increment=0.01, refinement=False):
