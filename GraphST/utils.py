@@ -39,17 +39,19 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
             adata.obsm[used_obsm].astype(np.float64)
         )
 
-    X = robjects.r.matrix(
-        X,
-        nrow=adata.obsm[used_obsm].shape[0],
-        ncol=adata.obsm[used_obsm].shape[1]
+    X_test = robjects.r.matrix(
+        robjects.r.rnorm(100 * 20),
+        nrow=100,
+        ncol=20
     )
-    print(type(X))
-    print(tuple(X.dim))
+
+    print(type(X_test))
+    print(tuple(X_test.dim))
+
     res = rmclust(
-        X,
-        G=num_cluster,
-        modelNames=modelNames
+        X_test,
+        G=5,
+        modelNames="EEE"
     )
 
     mclust_res = np.array(res[-2])
