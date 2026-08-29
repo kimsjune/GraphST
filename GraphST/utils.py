@@ -55,17 +55,17 @@ def mclust_R(
     # Get embedding
     X = adata.obsm[used_obsm]
 
+    print("Python type:", type(adata.obsm[used_obsm]))
     print("Python shape:", adata.obsm[used_obsm].shape)
-    print("R class:", X.rclass)
-    print("R dim:", X.dim)
-    print("R length:", len(X))
+    print("X type:", type(X))
+    print("X shape:", X.shape)
 
     # Convert NumPy array to R matrix locally
-    converter = default_converter + numpy2ri.converter
+    # converter = default_converter + numpy2ri.converter
 
-    with localconverter(converter):
+    with localconverter(default_converter + rpy2.robjects.numpy2ri.converter):
         res = mclust.Mclust(
-            X,
+            adata.obsm[used_obsm],
             G=num_cluster,
             modelNames=modelNames
         )
