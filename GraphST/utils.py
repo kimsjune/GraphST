@@ -27,9 +27,12 @@ def mclust_R(adata, num_cluster, modelNames='EEE', used_obsm='emb_pca', random_s
     r_random_seed(random_seed)
     rmclust = robjects.r['Mclust']
     
-    print("Python type:", type(adata.obsm[used_obsm]))
-    print("Python shape:", adata.obsm[used_obsm].shape)
-    print("Python dtype:", adata.obsm[used_obsm].dtype)
+    X_py = adata.obsm[used_obsm]
+
+    print("NA:", np.isnan(X_py).sum())
+    print("Inf:", np.isinf(X_py).sum())
+    print("finite:", np.isfinite(X_py).all())
+    print("unique rows:", np.unique(X_py, axis=0).shape[0])
 
     with localconverter(default_converter + numpy2ri.converter):
         X = numpy2ri.converter.py2rpy(
